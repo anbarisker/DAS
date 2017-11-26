@@ -176,6 +176,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 					setLeaderExist(false);
 					startElection(node_name);
 					
+					
 				} catch (NotBoundException er) {
 					// Shouldn't happen
 				}
@@ -254,7 +255,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 					}
 				}
 				setLeaderExist(true);
-				setLeaderName(getLeaderName());
+				setLeaderName(name);
 			} catch (RemoteException e) {
 				System.out.println("Node Error: FML3" + e.toString());
 				e.printStackTrace();
@@ -267,6 +268,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	@Override
 	public void newLeader(String newLeaderName) {
 		leaderName = newLeaderName;
+		setLeaderName(newLeaderName);
 		System.out.println(newLeaderName + " is the new leader.");
 	}
 

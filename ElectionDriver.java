@@ -42,15 +42,15 @@ public class ElectionDriver {
 								//leaderexist = true;
 								if(node.getLeaderExist() == false && leaderexist == false)
 								{
-									System.out.println("This is node name: and this will be the leader "+String.valueOf(node.getLeaderExist()));
-									System.out.println("This is node name: and this will be the leader "+node.getNode_name());
+									//System.out.println("This is node name: and this will be the leader "+String.valueOf(node.getLeaderExist()));
+									//System.out.println("This is node name: and this will be the leader "+node.getNode_name());
 								}
 
 
 
 							else if (node.getLeaderExist() == true)
 							{
-								System.out.println("leaderexist "+node.getLeaderName());
+								//System.out.println("leaderexist "+node.getLeaderName());
 								if(count == 0)
 								{
 								leaderexist = true;
@@ -75,22 +75,24 @@ public class ElectionDriver {
 
 
 							//node.makeChaos("Node-" + System.currentTimeMillis(), silence);
-								System.out.println("NAME NODE :"+ node.getNode_name());
+								/*System.out.println("NAME NODE :"+ node.getNode_name());
 								System.out.println("Leader Node :"+ node.getLeaderName());
-								System.out.println("SIZE :"+ reg.list().length);
-							if(node.getNode_name()==node.getLeaderName()&&reg.list().length == node.getAllData().size())
+								System.out.println("SIZE :"+ reg.list().length);*/
+								
+									
+							if(node.getNode_name().equals(node.getLeaderName()) && reg.list().length == node.getAllData().size())
 							{
 								System.out.println("testing");
 								All_Water_Temperature_Server = node.getAllData();
-								
-								
+								 node.clearMap(); 
+								 System.out.println("Size :"+ node.getAllData().size());
 								  Set<String> keys = All_Water_Temperature_Server.keySet();
 
 								  for(String k:keys)
 								  {
 									  System.out.println("Values :"+ All_Water_Temperature_Server.get(k));
 								  }
-								  node.clearMap();
+								 
 							}
 							//System.out.println("Values 2 :"+ node.getAllData().size());
 
@@ -98,13 +100,13 @@ public class ElectionDriver {
 
 
 						} catch (NotBoundException e) {
-							System.out.println("Election Driver Error: " + e.toString());
-							e.printStackTrace();
+							//System.out.println("Election Driver Error: " + e.toString());
+							//e.printStackTrace();
 						}
 					}
 				} catch (RemoteException e) {
-					System.out.println("Election Driver Error: " + e.toString());
-					e.printStackTrace();
+					//System.out.println("Election Driver Error: " + e.toString());
+					//e.printStackTrace();
 				}
 			}
 		}, delay, period);
