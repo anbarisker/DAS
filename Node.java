@@ -9,6 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Random;
+import java.text.DecimalFormat;
 import java.util.*;
 
 @SuppressWarnings("serial")
@@ -42,8 +43,10 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	private static final float min_W_lvl = 15.0f;
 	private static final float max_W_lvl = 30.0f;
 	Random rand = new Random();
-	private float water_temperature = rand.nextFloat()*(max_W_lvl - min_W_lvl + 1) + min;
-	LinkedHashMap<String,Float> All_Water_Temperature = new LinkedHashMap<String,Float>();
+	private double water_temperature = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min;
+	public LinkedHashMap<String,Double> All_Water_Temperature = new LinkedHashMap<String,Double>();
+	private int number_of_clients = 0;
+	private double water_temperature_leader;
 
 
 	@SuppressWarnings("unused")
@@ -51,6 +54,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 
 	public Node(String nameIn, String hostIn) throws RemoteException {
 		super();
+		number_of_clients++;
 
 		this.name = nameIn;
 		this.host = hostIn;
@@ -72,7 +76,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 				//temp
 
 				if (!name.equals(leaderName) &&
-						!heardFromLeader && !getLeaderExits()) {
+						!heardFromLeader && !getLeaderExist()) {
 
 					try {
 						System.out.println("Calling election...");
@@ -133,7 +137,10 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			@Override
 			public void run() {
 				if (leaderName != null && !name.equals(leaderName)) {
-					sendLeaderMsg("Data from " + name +" Water "+ water_temperature, name, water_temperature);
+					 water_temperature = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min;
+					 DecimalFormat df = new DecimalFormat("#.#");
+
+					sendLeaderMsg("Data from " + name +" Water "+ df.format(water_temperature), name, Double.valueOf(df.format(water_temperature)));
 				}
 			}
 		}, send_msg_delay, messagePeriod);
@@ -141,7 +148,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		System.out.println(name + " ready.");
 	}
 
-	private void sendLeaderMsg(String msg, String node_name, float water_data) {
+	private void sendLeaderMsg(String msg, String node_name, double water_data) {
 		try {
 			Registry reg = LocateRegistry.getRegistry(host);
 			//Registry reg = LocateRegistry.getRegistry();
@@ -194,13 +201,13 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			System.out.println(ignoreElection + " more elections being ignored.");
 			throw new DeadNodeException(name + " is dead.");
 		}*/
-		if(getLeaderExits())
+		if(getLeaderExist())
 		{
 			System.out.println(" Leader exits.");
 			noLeaderFound = false;
 
 		}
-		 else if(getLeaderExits() == false){
+		 else if(getLeaderExist() == false){
 			System.out.println("Election started.");
 
 			try {
@@ -232,7 +239,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 						}
 					}
 				}
-				setLeaderExits(true);
+				setLeaderExist(true);
 				setLeaderName(getLeaderName());
 			} catch (RemoteException e) {
 				System.out.println("Node Error: FML3" + e.toString());
@@ -255,13 +262,23 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	 * the leader is still there and active.
 	 */
 	@Override
-	public String recvMsg(String senderName, String msg, float water_temperature) {
+	public String recvMsg(String senderName, String msg, double water_temperature) {
 		String ret = "Not the leader.";
 
 		if (leaderName.equals(name)) {
+			if(All_Water_Temperature.isEmpty())
+			{
+				water_temperature_leader = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min;
+				DecimalFormat df = new DecimalFormat("#.#");
+				All_Water_Temperature.put(leaderName, Double.valueOf(df.format(water_temperature_leader)));
+			}
 			System.out.println(senderName + ": " + msg);
 			All_Water_Temperature.put(senderName, water_temperature);
 			ret = "Message received.";
+			if(number_of_clients == All_Water_Temperature.size()){
+
+				All_Water_Temperature.clear();
+			}
 		}
 
 		return ret;
@@ -308,12 +325,12 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		return name;
 	}
 	@Override
-	public boolean getLeaderExits()
+	public boolean getLeaderExist()
 	{
 		return leaderexits;
 	}
 	@Override
-	public void setLeaderExits(boolean leader)
+	public void setLeaderExist(boolean leader)
 	{
 		leaderexits = leader;
 	}
@@ -326,6 +343,17 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	public String getLeaderName()
 	{
 		return new_leadername;
+	}
+	@Override
+	public LinkedHashMap<String,Double> getAllData()
+	{
+		return All_Water_Temperature;
+	}
+	
+	@Override
+	public int getNumberOfClient()
+	{
+		return number_of_clients;
 	}
 
 

@@ -3,6 +3,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,9 +16,10 @@ public class ElectionDriver {
 	private final int max = 15;
 
 	private String host;
-	private boolean leaderexits = false;
+	private boolean leaderexist = false;
 	private String new_leadername = "";
 	private int count = 0;
+	public	LinkedHashMap<String,Double> All_Water_Temperature_Server = new LinkedHashMap<String,Double>();
 
 	public ElectionDriver(String hostIn) {
 		host = hostIn;
@@ -36,23 +39,23 @@ public class ElectionDriver {
 
 
 								ElectionNode node = (ElectionNode) reg.lookup(nodeName);
-								//leaderexits = true;
-								if(node.getLeaderExits() == false && leaderexits == false)
+								//leaderexist = true;
+								if(node.getLeaderExist() == false && leaderexist == false)
 								{
-									System.out.println("This is node name: and this will be the leader "+String.valueOf(node.getLeaderExits()));
+									System.out.println("This is node name: and this will be the leader "+String.valueOf(node.getLeaderExist()));
 									System.out.println("This is node name: and this will be the leader "+node.getNode_name());
 								}
 
 
 
-							else if (node.getLeaderExits() == true)
+							else if (node.getLeaderExist() == true)
 							{
-								System.out.println("leaderexits "+node.getLeaderName());
+								System.out.println("leaderexist "+node.getLeaderName());
 								if(count == 0)
 								{
-								leaderexits = true;
+								leaderexist = true;
 								new_leadername = node.getNode_name();
-								node.setLeaderExits(leaderexits);
+								node.setLeaderExist(leaderexist);
 								node.setLeaderName(new_leadername);
 								count++;
 								}
@@ -60,17 +63,31 @@ public class ElectionDriver {
 								//node.setLeaderName(new_leadername);
 							}
 
-							else if (node.getLeaderExits() == false &&  leaderexits == true )
+							else if (node.getLeaderExist() == false &&  leaderexist == true )
 							{
-								System.out.println("sorry leaderexits "+node.getLeaderName());
-								node.setLeaderExits(leaderexits);
+								//System.out.println("sorry leaderexist "+node.getLeaderName());
+								node.setLeaderExist(leaderexist);
 								node.setLeaderName(new_leadername);
 								//node.setLeaderName(new_leadername);
 							}
 
 
 							//node.makeChaos("Node-" + System.currentTimeMillis(), silence);
+								System.out.println("NAME NODE :"+ node.getNode_name());
+								System.out.println("Leader Node :"+ node.getNode_name());
+								System.out.println("SIZE :"+ reg.list().length);
+							if(reg.list().length == node.getAllData().size())
+							{
+								All_Water_Temperature_Server = node.getAllData();
+								
+								  Set<String> keys = All_Water_Temperature_Server.keySet();
 
+								  for(String k:keys)
+								  {
+									  System.out.println("Values :"+ All_Water_Temperature_Server.get(k));
+								  }
+							}
+							//System.out.println("Values 2 :"+ node.getAllData().size());
 
 
 
