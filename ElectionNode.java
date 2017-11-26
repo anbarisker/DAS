@@ -25,7 +25,9 @@ public interface ElectionNode extends Remote {
 	public String getLeaderName()throws RemoteException;
 	//
 	public LinkedHashMap<String,Double> getAllData() throws RemoteException;
+	public void setNumberOfClient(int num) throws RemoteException; 
 	public int getNumberOfClient() throws RemoteException; 
+	public void clearMap() throws RemoteException;
 
 
 

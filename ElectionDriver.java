@@ -59,7 +59,7 @@ public class ElectionDriver {
 								node.setLeaderName(new_leadername);
 								count++;
 								}
-								node.setLeaderName(new_leadername);
+								//node.setLeaderName(new_leadername);
 								//node.setLeaderName(new_leadername);
 							}
 
@@ -70,15 +70,19 @@ public class ElectionDriver {
 								node.setLeaderName(new_leadername);
 								//node.setLeaderName(new_leadername);
 							}
+							//set number of client
+								node.setNumberOfClient(reg.list().length);
 
 
 							//node.makeChaos("Node-" + System.currentTimeMillis(), silence);
 								System.out.println("NAME NODE :"+ node.getNode_name());
-								System.out.println("Leader Node :"+ node.getNode_name());
+								System.out.println("Leader Node :"+ node.getLeaderName());
 								System.out.println("SIZE :"+ reg.list().length);
-							if(reg.list().length == node.getAllData().size())
+							if(node.getNode_name()==node.getLeaderName()&&reg.list().length == node.getAllData().size())
 							{
+								System.out.println("testing");
 								All_Water_Temperature_Server = node.getAllData();
+								
 								
 								  Set<String> keys = All_Water_Temperature_Server.keySet();
 
@@ -86,6 +90,7 @@ public class ElectionDriver {
 								  {
 									  System.out.println("Values :"+ All_Water_Temperature_Server.get(k));
 								  }
+								  node.clearMap();
 							}
 							//System.out.println("Values 2 :"+ node.getAllData().size());
 
