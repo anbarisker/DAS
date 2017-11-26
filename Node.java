@@ -8,6 +8,8 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Random;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class Node extends UnicastRemoteObject implements ElectionNode {
@@ -16,8 +18,13 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	private static final int min = 1;
 	private static final int max = 2;
 
+
+
 	private static final int delay = 5000;
-	private final int silencePeriod = (min + (int)(Math.random() * ((max - min) + 1))) * 1000;
+	private static final int leader_delay = 5000;
+	private static final int send_msg_delay = 10000;
+	//private final int silencePeriod = (min + (int)(Math.random() * ((max - min) + 1))) * 1000;
+	private final int silencePeriod = 30000;
 	private int messagePeriod = 0;
 
 	private String host;
@@ -31,6 +38,14 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	private boolean leaderexits = false;
 	private String new_leadername ="";
 
+	//hydro
+	private static final float min_W_lvl = 15.0f;
+	private static final float max_W_lvl = 30.0f;
+	Random rand = new Random();
+	private float water_temperature = rand.nextFloat()*(max_W_lvl - min_W_lvl + 1) + min;
+	LinkedHashMap<String,Float> All_Water_Temperature = new LinkedHashMap<String,Float>();
+
+
 	@SuppressWarnings("unused")
 	private Node() throws RemoteException {super();}
 
@@ -43,7 +58,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		// Make sure that messages are getting sent more frequently then
 		// the node checks for silence
 		while (messagePeriod < silencePeriod) {
-			messagePeriod = (min + (int) (Math.random() * ((max - min) + 1))) * 1000;
+			messagePeriod = (min + (int) (Math.random() * ((max - min) + 1))) * 30000;
 			System.out.println("MP : "+messagePeriod);
 			System.out.println("SP : "+silencePeriod);
 
@@ -112,21 +127,21 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			else if (heardFromLeader)
 					heardFromLeader = false;
 			}
-		}, delay, silencePeriod);
+		}, leader_delay, silencePeriod);
 
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				if (leaderName != null && !name.equals(leaderName)) {
-					sendLeaderMsg("Message from " + name);
+					sendLeaderMsg("Data from " + name +" Water "+ water_temperature, name, water_temperature);
 				}
 			}
-		}, delay, messagePeriod);
+		}, send_msg_delay, messagePeriod);
 
 		System.out.println(name + " ready.");
 	}
 
-	private void sendLeaderMsg(String msg) {
+	private void sendLeaderMsg(String msg, String node_name, float water_data) {
 		try {
 			Registry reg = LocateRegistry.getRegistry(host);
 			//Registry reg = LocateRegistry.getRegistry();
@@ -134,7 +149,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			try {
 				ElectionNode leaderNode = (ElectionNode) reg.lookup(leaderName);
 
-				String response = leaderNode.recvMsg(name, msg);
+				String response = leaderNode.recvMsg(name, msg, water_data);
 				System.out.println(leaderName + ": " + response);
 
 				if (!heardFromLeader)
@@ -159,6 +174,9 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			e.printStackTrace();
 		}
 	}
+
+
+
 
 	/**
 	 * Starts the election. If the node has an ignore election counter it will
@@ -237,21 +255,24 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	 * the leader is still there and active.
 	 */
 	@Override
-	public String recvMsg(String senderName, String msg) {
+	public String recvMsg(String senderName, String msg, float water_temperature) {
 		String ret = "Not the leader.";
 
 		if (leaderName.equals(name)) {
 			System.out.println(senderName + ": " + msg);
+			All_Water_Temperature.put(senderName, water_temperature);
 			ret = "Message received.";
 		}
 
 		return ret;
 	}
 
+
 	/**
 	 * Allows the ElectionDriver to change the name of the node and rebind it
 	 * to the registry under the new name
 	 */
+
 	@Override
 	public void makeChaos(String newName, int ignore) {
 		if (!name.equals(leaderName)) {

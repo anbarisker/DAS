@@ -29,7 +29,7 @@ public class ElectionDriver {
 				try {
 					//Registry reg = LocateRegistry.getRegistry(host);
 						Registry reg = LocateRegistry.getRegistry();
-					System.out.println("reg :"+reg);
+					//System.out.println("reg :"+reg);
 					for (String nodeName : reg.list()) {
 						try {
 							int silence = (int) (Math.random() * 5);
