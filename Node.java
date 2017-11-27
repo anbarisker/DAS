@@ -51,8 +51,13 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	//hydro
 	private static final double min_W_lvl = 15.0;
 	private static final double max_W_lvl = 30.0;
+	private static final double min_PH_lvl = 4.0;
+	private static final double max_PH_lvl = 10.0;
+	private static final double min_H_lvl = 35.0;
+	private static final double max_H_lvl = 100.0;
 	Random rand = new Random();
-	private double sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
+	private double sensor_data;
+	DecimalFormat df = new DecimalFormat("#.#");
 	public LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
 	private int number_of_clients = 0;
 	
@@ -156,13 +161,16 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			
 			
 			 ArrayList<Double> sensors_data = new  ArrayList<Double>();
-			 for(int i=0; i<3; i++)
-			 {
-				 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
-				 DecimalFormat df = new DecimalFormat("#.#");
-				 sensors_data.add(Double.valueOf(df.format(sensor_data)));
-			 }
-			 	sensors_data.add(Double.valueOf(System.currentTimeMillis()));
+			 //water
+			 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
+			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+			//ph-lvl
+			 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+			//h-lvl
+			 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
+			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+			 sensors_data.add(Double.valueOf(System.currentTimeMillis()));
 			 
 			 
 			 
@@ -312,12 +320,20 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			if(All_Sensors_Data.isEmpty())
 			{
 				 ArrayList<Double> sensors_data_leader = new  ArrayList<Double>();
-				 for(int i=0; i<3; i++)
-				 {
+				 	
+				 	//water
 					 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
-					 DecimalFormat df = new DecimalFormat("#.#");
 					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
-				 }
+					//ph-lvl
+					 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
+					//h-lvl
+					 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
+					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
+					 sensors_data_leader.add(Double.valueOf(System.currentTimeMillis()));
+					 
+					 
+				 
 				 sensors_data_leader.add(Double.valueOf(System.currentTimeMillis()));
 				
 				All_Sensors_Data.put(leaderName, sensors_data_leader);
