@@ -27,7 +27,7 @@ public class ElectionDriver {
 	private int count = 0;
 	private int data_count =0;
 	public	LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
-	
+	public ArrayList<Double> emp_array = new ArrayList<Double>();
 	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyy HH:mm:ss");
 	public ElectionDriver(String hostIn) {
 		host = hostIn;
@@ -38,8 +38,8 @@ public class ElectionDriver {
 			@Override
 			public void run() {
 				try {
-					//Registry reg = LocateRegistry.getRegistry(host);
-						Registry reg = LocateRegistry.getRegistry();
+					Registry reg = LocateRegistry.getRegistry(host);
+						//Registry reg = LocateRegistry.getRegistry();
 					//System.out.println("reg :"+reg);
 					for (String nodeName : reg.list()) {
 						try {
@@ -92,19 +92,15 @@ public class ElectionDriver {
 							{
 								
 								data_count++;
-								//All_Sensors_Data.putAll(node.getAllData());
-								
-								
-								
-								 Set<String> keys_initial = All_Sensors_Data.keySet();
+								All_Sensors_Data.putAll(node.getAllData());
+							/*	 Set<String> keys_initial = node.getAllData().keySet();
 								 ArrayList<Double> emp_array = new ArrayList<Double>();
 								  for(String k:keys_initial)
 								  {
-									 for(int i=0; i<All_Sensors_Data.get(k).size();i++)
-									 {
-									//	 emp_array.add();
-									 }
-								  }
+									  emp_array.addAll(node.getAllData().get(k));
+									  All_Sensors_Data.put(k,emp_array);
+									  
+								  }*/
 								
 								
 								 node.clearMap(); 
