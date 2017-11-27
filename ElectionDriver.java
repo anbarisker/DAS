@@ -150,7 +150,6 @@ public class ElectionDriver {
 	        if(!temp.equals("Please check on sensors")){
 	        	sb.append(',');
 	        	sb.append(temp);
-	        	System.out.println("im here");
 	        }
 	        sb.append("\r\n");
 	    }
