@@ -1,6 +1,8 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -27,6 +29,14 @@ public class ElectionDriver {
 	private int count = 0;
 	private int data_count =0;
 	private ArrayList<ArrayList<String>> All_Sensors_Data_Server = new ArrayList<ArrayList<String>>();
+
+	//hydro
+	private static final double min_W_lvl = 18.0;
+	private static final double max_W_lvl = 26.0;
+	private static final double min_PH_lvl = 5.8;
+	private static final double max_PH_lvl = 6.2;
+	private static final double min_H_lvl = 50.0;
+	private static final double max_H_lvl = 80.0;
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyy HH:mm:ss");
 	public ElectionDriver(String hostIn) {
@@ -107,7 +117,6 @@ public class ElectionDriver {
 //								  }
 //								
 								 // All_Sensors_Data_Server.putAll(node.getAllData());
-								
 								// System.out.println("Size :"+ All_Sensors_Data_Server.size());
 								  Set<String> keys = node.getAllData().keySet();
 								  
@@ -164,7 +173,6 @@ public class ElectionDriver {
 	  PrintWriter pw = new PrintWriter(new File("Sensors_Data.csv"));
 	       StringBuilder sb = new StringBuilder();
 
-
 	         for(int i=0; i<Final_Data.size(); i++)
 	         {
 	           sb.append(Final_Data.get(i).get(0));
@@ -176,7 +184,24 @@ public class ElectionDriver {
 	           sb.append(Final_Data.get(i).get(3));
 	           sb.append(',');
 	           sb.append(Final_Data.get(i).get(4));
-	           sb.append('\n');
+	           String temp = "Please check on sensors";
+	           if(Double.parseDouble(Final_Data.get(i).get(1)) > max_W_lvl || Double.parseDouble(Final_Data.get(i).get(1)) < min_W_lvl){
+	        	   temp += " Water Temperature";
+	           }
+	           if(Double.parseDouble(Final_Data.get(i).get(2)) > max_PH_lvl || Double.parseDouble(Final_Data.get(i).get(2)) < min_PH_lvl){
+	        	   temp += " PH Level";
+	           }
+	           if(Double.parseDouble(Final_Data.get(i).get(3)) > max_H_lvl || Double.parseDouble(Final_Data.get(i).get(3)) < min_H_lvl){
+	        	   temp += " Humidity Level";
+	           }
+	           System.out.println(!temp.equals("Please check on sensors"));
+	           System.out.println(temp);
+	           if(!temp.equals("Please check on sensors")){
+	        	   sb.append(',');
+	        	   sb.append(temp);
+	        	   System.out.println("im here");
+	           }
+	           sb.append("\r\n");
 	         }
 	       pw.write(sb.toString());
 	       pw.close();
