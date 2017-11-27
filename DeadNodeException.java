@@ -1,6 +1,4 @@
-
 public class DeadNodeException extends Exception {
-
 	public DeadNodeException() {
 		super();
 	}
@@ -8,5 +6,4 @@ public class DeadNodeException extends Exception {
 	public DeadNodeException(String message) {
 		super(message);
 	}
-
 }

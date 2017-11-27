@@ -1,6 +1,7 @@
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.ConnectException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -20,25 +21,17 @@ import java.util.*;
 
 @SuppressWarnings("serial")
 public class Node extends UnicastRemoteObject implements ElectionNode {
-
 	// Range for the period to check if heard from leader, [1,5]
 	private static final int min = 1;
 	private static final int max = 2;
 
-
-
 	private static final int delay = 5000;
 	private static final int leader_delay = 5000;
 	private static final int send_msg_delay = 10000;
-	//private final int silencePeriod = (min + (int)(Math.random() * ((max - min) + 1))) * 1000;
 	private final int silencePeriod = 30000;
 	private int messagePeriod = 0;
-	
-	//time 
-	
 
 	private String host;
-
 	private String name;
 	private String leaderName = "";
 
@@ -58,20 +51,14 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	Random rand = new Random();
 	private double sensor_data;
 	DecimalFormat df = new DecimalFormat("#.#");
-	public LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
-	private int number_of_clients = 0;
-	
-	private double sensor_data_leader;
-	
-	
+	private LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
+	private int number_of_clients = 0;	
 
 	@SuppressWarnings("unused")
 	private Node() throws RemoteException {super();}
 
 	public Node(String nameIn, String hostIn) throws RemoteException {
 		super();
-		//number_of_clients++;
-
 		this.name = nameIn;
 		this.host = hostIn;
 
@@ -79,25 +66,17 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		// the node checks for silence
 		while (messagePeriod < silencePeriod) {
 			messagePeriod = (min + (int) (Math.random() * ((max - min) + 1))) * 30000;
-			//System.out.println("MP : "+messagePeriod);
-			//System.out.println("SP : "+silencePeriod);
-
 		}
 
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-
-				//temp
-
 				if (!name.equals(leaderName) &&
 						!heardFromLeader && !getLeaderExist()) {
-
 					try {
 						System.out.println("Calling election...");
 						Registry reg = LocateRegistry.getRegistry(host);
-						//Registry reg = LocateRegistry.getRegistry();
 						for (String nodeName : reg.list()) {
 							try {
 								if (!nodeName.equals(name) && nodeName.compareTo(name) > 0) {
@@ -114,14 +93,12 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 								System.out.println(e.toString());
 							} catch (NotBoundException e) {
 								try {
-									//System.out.println("Node Error: fml8" + nodeName + " unbound.");
 									reg.unbind(nodeName);
 								} catch (NotBoundException er) {
 									// Shouldn't happen
 								}
 							} catch (ConnectException e) {
 								try {
-									//System.out.println("Node Error: fml9" + nodeName + " unbound.");
 									reg.unbind(nodeName);
 								} catch (NotBoundException er) {
 									// Shouldn't happen
@@ -134,13 +111,9 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 								System.out.println("No leader found, electing myself.");
 								startElection(name);
 								noLeaderFound = false;
-							} catch (DeadNodeException e) {
-								//System.out.println("Node Error: FML 1" + e.toString());
-							}
-
+							} catch (DeadNodeException e) {}
 						}
 					} catch (RemoteException e) {
-						//System.out.println("Node Error: FML 2" + e.toString());
 						e.printStackTrace();
 					}
 				}
@@ -149,77 +122,59 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			}
 		}, leader_delay, silencePeriod);
 		
-		
-		
-
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				if((System.currentTimeMillis()/1000) %10 == 0)
-		{
-		if (leaderName != null && !name.equals(leaderName)) {
-			
-			
-			 ArrayList<Double> sensors_data = new  ArrayList<Double>();
-			 //water
-			 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
-			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
-			//ph-lvl
-			 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
-			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
-			//h-lvl
-			 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
-			 sensors_data.add(Double.valueOf(df.format(sensor_data)));
-			 sensors_data.add(Double.valueOf(System.currentTimeMillis()));
-			 
-			 
-			 
-			try {
-				sendLeaderMsg("Data from " + name +", Water Level: "+ sensors_data.get(0)+", PH Level: "+ sensors_data.get(1)+", Humidity Level: "+ sensors_data.get(2) , name, sensors_data);
-			} catch (NumberFormatException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (DeadNodeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+				if((System.currentTimeMillis()/1000) %10 == 0){
+					if (leaderName != null && !name.equals(leaderName)) {		
+						 ArrayList<Double> sensors_data = new  ArrayList<Double>();
+						 //water
+						 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
+						 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+						//ph-lvl
+						 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+						 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+						//h-lvl
+						 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
+						 sensors_data.add(Double.valueOf(df.format(sensor_data)));
+						 sensors_data.add(Double.valueOf(System.currentTimeMillis()));							 
+						try {
+							sendLeaderMsg("Data from " + name +", Water Level: "+ sensors_data.get(0)+", PH Level: "+ sensors_data.get(1)+", Humidity Level: "+ sensors_data.get(2) , name, sensors_data);
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (DeadNodeException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}, 5000, 1000);
-
 		System.out.println(name + " ready.");
 	}
 
 	private void sendLeaderMsg(String msg, String node_name,ArrayList<Double> sensors_data ) throws DeadNodeException {
 		try {
 			Registry reg = LocateRegistry.getRegistry(host);
-			//Registry reg = LocateRegistry.getRegistry();
 			leaderName = getLeaderName();
 			try {
 				ElectionNode leaderNode = (ElectionNode) reg.lookup(leaderName);
-
 				String response = leaderNode.recvMsg(node_name, msg, sensors_data);
 				System.out.println(leaderName + ": " + response);
-
 				if (!heardFromLeader)
 					heardFromLeader = true;
 			} catch (NotBoundException e) {
 				try {
-					//System.out.println("Node Error: fml 10" + leaderName + " unbound.");
 					reg.unbind(leaderName);
 					setLeaderExist(false);
-					startElection(node_name);
-					
-					
+					startElection(node_name);	
 				} catch (NotBoundException er) {
 					// Shouldn't happen
 				}
 			} catch (ConnectException e) {
 				try {
-					//System.out.println("Node Error: fml 11" + leaderName + " unbound.");
 					reg.unbind(leaderName);
-
 					setLeaderExist(false);
 					startElection(node_name);
 				} catch (NotBoundException er) {
@@ -227,14 +182,9 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 				}
 			}
 		} catch (RemoteException e) {
-			//System.out.println("Node Error: FML 12" + e.toString());
 			e.printStackTrace();
 		}
 	}
-
-
-
-
 	/**
 	 * Starts the election. If the node has an ignore election counter it will
 	 * decrement the counter and throws a DeadNodeException.
@@ -245,25 +195,15 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	@Override
 	public String startElection(String senderName) throws DeadNodeException {
 		String ret = "";
-		/*
-		if (ignoreElection > 0) {
-			ignoreElection--;
-			System.out.println(ignoreElection + " more elections being ignored.");
-			throw new DeadNodeException(name + " is dead.");
-		}*/
 		if(getLeaderExist())
 		{
-			System.out.println(" Leader exits.");
+			System.out.println("Leader exits.");
 			noLeaderFound = false;
-
 		}
 		 else if(getLeaderExist() == false){
 			System.out.println("Election started.");
-
 			try {
 				Registry reg = LocateRegistry.getRegistry(host);
-				//Registry reg = LocateRegistry.getRegistry();
-
 				ret = "Leader accepted.";
 				System.out.println(ret);
 				leaderName = name;
@@ -274,14 +214,12 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 							node.newLeader(name);
 						} catch (NotBoundException e) {
 							try {
-								//System.out.println("Node Error: FML1" + nodeName + " unbound.");
 								reg.unbind(nodeName);
 							} catch (NotBoundException er) {
 								// Shouldn't happen
 							}
 						} catch (ConnectException e) {
 							try {
-								//System.out.println("Node Error: FML2" + nodeName + " unbound.");
 								reg.unbind(nodeName);
 							} catch (NotBoundException er) {
 								// Shouldn't happen
@@ -292,11 +230,9 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 				setLeaderExist(true);
 				setLeaderName(name);
 			} catch (RemoteException e) {
-				//System.out.println("Node Error: FML3" + e.toString());
 				e.printStackTrace();
 			}
 		}
-
 		return ret;
 	}
 
@@ -315,38 +251,28 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	@Override
 	public String recvMsg(String senderName, String msg, ArrayList<Double> sensors_data) {
 		String ret = "Not the leader.";
-
 		if (leaderName.equals(name)) {
 			if(All_Sensors_Data.isEmpty())
 			{
-				 ArrayList<Double> sensors_data_leader = new  ArrayList<Double>();
-				 	
-				 	//water
-					 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
-					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
-					//ph-lvl
-					 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
-					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
-					//h-lvl
-					 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
-					 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
-					 sensors_data_leader.add(Double.valueOf(System.currentTimeMillis()));
-					 
-					 
-				 
-				 sensors_data_leader.add(Double.valueOf(System.currentTimeMillis()));
-				
-				All_Sensors_Data.put(leaderName, sensors_data_leader);
+				 ArrayList<Double> sensors_data_leader = new  ArrayList<Double>();				 	
+			 	//water
+				 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
+				 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
+				//ph-lvl
+				 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+				 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
+				//h-lvl
+				 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
+				 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
+				 sensors_data_leader.add(Double.valueOf(System.currentTimeMillis()));			 
+				 All_Sensors_Data.put(leaderName, sensors_data_leader);
 			}
 			System.out.println(senderName + ": " + msg);
 			All_Sensors_Data.put(senderName, sensors_data);
-			ret = "Message received.";
-		
+			ret = "Message received.";		
 		}
-
 		return ret;
 	}
-
 
 	/**
 	 * Allows the ElectionDriver to change the name of the node and rebind it
@@ -358,14 +284,11 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		if (!name.equals(leaderName)) {
 			try {
 				Registry reg = LocateRegistry.getRegistry(host);
-		//Registry reg = LocateRegistry.getRegistry();
 				String oldName = name;
 				name = newName;
 				ignoreElection = ignore;
-
 				reg.unbind(oldName);
 				reg.bind(name, this);
-
 				System.out.println("New node name: " + newName);
 				System.out.println("Ignoring " + ignore + " elections...");
 			} catch(RemoteException e) {
@@ -429,23 +352,18 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 		number_of_clients =num;
 	}
 
-
 	public static void main(String[] args) {
 		String name = (args.length < 1 || args[0].equals("!")) ?
-				"Node-" + System.currentTimeMillis() : args[0];
-				String host = (args.length < 2) ? null : args[1];
-				try {
-					Node node = new Node(name, host);
-					//Node node = new Node(name, LocateRegistry.getRegistry().toString());
-
-					// Bind stub to the registry
-					Registry reg = LocateRegistry.getRegistry(host);
-							//Registry reg = LocateRegistry.getRegistry();
-					reg.bind(name, node);
-				} catch (Exception e) {
-					//System.out.println("Node Error: fml7" + e.toString());
-					e.printStackTrace();
-				}
+		"Node-" + System.currentTimeMillis() : args[0];
+		String host = (args.length < 2) ? null : args[1];
+		try {
+			Node node = new Node(name, host);
+			// Bind stub to the registry
+			Registry reg = LocateRegistry.getRegistry(host);;
+			reg.bind(name, node);
+		} catch (Exception e) {
+			//System.out.println("Node Error: fml7" + e.toString());
+			e.printStackTrace();
+		}
 	}
-
 }
