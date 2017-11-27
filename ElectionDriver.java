@@ -3,6 +3,9 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.Timer;
@@ -19,7 +22,7 @@ public class ElectionDriver {
 	private boolean leaderexist = false;
 	private String new_leadername = "";
 	private int count = 0;
-	public	LinkedHashMap<String,Double> All_Water_Temperature_Server = new LinkedHashMap<String,Double>();
+	public	LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
 
 	public ElectionDriver(String hostIn) {
 		host = hostIn;
@@ -82,15 +85,16 @@ public class ElectionDriver {
 									
 							if(node.getNode_name().equals(node.getLeaderName()) && reg.list().length == node.getAllData().size())
 							{
-								System.out.println("testing");
-								All_Water_Temperature_Server = node.getAllData();
+								//System.out.println("testing");
+								All_Sensors_Data = node.getAllData();
 								 node.clearMap(); 
-								 System.out.println("Size :"+ node.getAllData().size());
-								  Set<String> keys = All_Water_Temperature_Server.keySet();
-
+								// System.out.println("Size :"+ node.getAllData().size());
+								  Set<String> keys = All_Sensors_Data.keySet();
+								  SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyy HH:mm:ss");
 								  for(String k:keys)
 								  {
-									  System.out.println("Values :"+ All_Water_Temperature_Server.get(k));
+									  Date date = new Date(All_Sensors_Data.get(k).get(3).longValue());
+									  System.out.println("Client Name: "+k+", Water Temperature: "+All_Sensors_Data.get(k).get(0)+", PH Level: "+All_Sensors_Data.get(k).get(1)+", Humidity: "+All_Sensors_Data.get(k).get(2)+", Date: "+ sdf.format(date));
 								  }
 								 
 							}
