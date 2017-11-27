@@ -26,9 +26,9 @@ public class ElectionDriver {
 	private String new_leadername = "";
 	private int count = 0;
 	private int data_count =0;
-	public	LinkedHashMap<String,ArrayList<Double>> All_Sensors_Data = new LinkedHashMap<String,ArrayList<Double>>();
-	public ArrayList<Double> emp_array = new ArrayList<Double>();
-	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyy HH:mm:ss");
+	private ArrayList<ArrayList<String>> All_Sensors_Data_Server = new ArrayList<ArrayList<String>>();
+	
+	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyy HH:mm:ss");
 	public ElectionDriver(String hostIn) {
 		host = hostIn;
 		int period = min + (int) (Math.random() * ((max - min) + 1)) * 1000;
@@ -38,8 +38,8 @@ public class ElectionDriver {
 			@Override
 			public void run() {
 				try {
-					Registry reg = LocateRegistry.getRegistry(host);
-						//Registry reg = LocateRegistry.getRegistry();
+					//Registry reg = LocateRegistry.getRegistry(host);
+						Registry reg = LocateRegistry.getRegistry();
 					//System.out.println("reg :"+reg);
 					for (String nodeName : reg.list()) {
 						try {
@@ -92,33 +92,45 @@ public class ElectionDriver {
 							{
 								
 								data_count++;
-								All_Sensors_Data.putAll(node.getAllData());
-							/*	 Set<String> keys_initial = node.getAllData().keySet();
-								 ArrayList<Double> emp_array = new ArrayList<Double>();
-								  for(String k:keys_initial)
-								  {
-									  emp_array.addAll(node.getAllData().get(k));
-									  All_Sensors_Data.put(k,emp_array);
-									  
-								  }*/
+								//All_Sensors_Data_Server.putAll(node.getAllData());
 								
+//								All_Sensors_Data_Server = node.getAllData();
+//								
+//								 Set<String> keys_initial = node.getAllData().keySet();
+//								 ArrayList<Double> emp_array = new ArrayList<Double>();
+//								  for(String k:keys_initial)
+//								  {
+//									 for(int i=0; i<node.getAllData().get(k).size();i++)
+//									 {
+//										 emp_array.add(node.getAllData().);
+//									 }
+//								  }
+//								
+								 // All_Sensors_Data_Server.putAll(node.getAllData());
 								
-								 node.clearMap(); 
-								// System.out.println("Size :"+ All_Sensors_Data.size());
-								  Set<String> keys = All_Sensors_Data.keySet();
+								// System.out.println("Size :"+ All_Sensors_Data_Server.size());
+								  Set<String> keys = node.getAllData().keySet();
 								  
 								  for(String k:keys)
 								  {
-									  Date date = new Date(All_Sensors_Data.get(k).get(3).longValue());
-									  System.out.println("Client Name: "+k+", Water Temperature: "+All_Sensors_Data.get(k).get(0)+", PH Level: "+All_Sensors_Data.get(k).get(1)+", Humidity: "+All_Sensors_Data.get(k).get(2)+", Date: "+ sdf.format(date));
+									  Date date = new Date(node.getAllData().get(k).get(3).longValue());
+									  ArrayList<String> node_data = new ArrayList<String>();
+									  node_data.add(k);
+									  node_data.add(node.getAllData().get(k).get(0).toString());
+									  node_data.add(node.getAllData().get(k).get(1).toString());
+									  node_data.add(node.getAllData().get(k).get(2).toString());
+									  node_data.add(sdf.format(date).toString());
+									  All_Sensors_Data_Server.add(node_data);
+									  System.out.println("Client Name: "+k+", Water Temperature: "+node.getAllData().get(k).get(0)+", PH Level: "+node.getAllData().get(k).get(1)+", Humidity: "+node.getAllData().get(k).get(2)+", Date: "+ sdf.format(date));
 								  }
 								  
 								  if(data_count == 10)
 								  {
 									  data_count = 0;
 									  
-									  create_csv(All_Sensors_Data);
+									  create_csv(All_Sensors_Data_Server);
 								  }
+								  node.clearMap(); 
 								 
 							}
 							//System.out.println("Values 2 :"+ node.getAllData().size());
@@ -145,31 +157,27 @@ public class ElectionDriver {
 		
 	}
 	
-	public void create_csv(LinkedHashMap<String,ArrayList<Double>> Final_Data)throws FileNotFoundException
+	public void create_csv(ArrayList<ArrayList<String>> Final_Data)throws FileNotFoundException
 	{
 	  //filewriter
 	    System.out.println("Exported to csv!");
 	  PrintWriter pw = new PrintWriter(new File("Sensors_Data.csv"));
 	       StringBuilder sb = new StringBuilder();
-	       Set<String> keys =  Final_Data.keySet();
 
-	       for(String k:keys)
-	       {
-	         for(int i=0; i<Final_Data.get(k).size(); i++)
+
+	         for(int i=0; i<Final_Data.size(); i++)
 	         {
-	           sb.append(k);
+	           sb.append(Final_Data.get(i).get(0));
 	           sb.append(',');
-	           sb.append(Final_Data.get(k).get(0));
+	           sb.append(Final_Data.get(i).get(1));
 	           sb.append(',');
-	           sb.append(Final_Data.get(k).get(1));
+	           sb.append(Final_Data.get(i).get(2));
 	           sb.append(',');
-	           sb.append(Final_Data.get(k).get(2));
+	           sb.append(Final_Data.get(i).get(3));
 	           sb.append(',');
-	           Date date = new Date(All_Sensors_Data.get(k).get(3).longValue());
-	           sb.append(sdf.format(date));
+	           sb.append(Final_Data.get(i).get(4));
 	           sb.append('\n');
 	         }
-	       }
 	       pw.write(sb.toString());
 	       pw.close();
 	       System.out.println("done!");
