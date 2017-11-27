@@ -28,10 +28,10 @@ public class ElectionDriver {
 	// Min and max optimal values for all sensors
 	private static final double min_W_lvl = 18.0;
 	private static final double max_W_lvl = 26.0;
-	private static final double min_PH_lvl = 5.8;
-	private static final double max_PH_lvl = 6.2;
+	private static final double min_PH_lvl = 5.5;
+	private static final double max_PH_lvl = 6.5;
 	private static final double min_H_lvl = 50.0;
-	private static final double max_H_lvl = 80.0;	
+	private static final double max_H_lvl = 70.0;	
 	
 	// Date Time Format
 	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyy HH:mm:ss");
@@ -92,7 +92,7 @@ public class ElectionDriver {
 									node_data.add(node.getAllData().get(k).get(2).toString());
 									node_data.add(sdf.format(date).toString());
 									All_Sensors_Data_Server.add(node_data);
-									System.out.println("Client Name: "+k+", Water Temperature: "+node.getAllData().get(k).get(0)+", PH Level: "+node.getAllData().get(k).get(1)+", Humidity: "+node.getAllData().get(k).get(2)+", Date: "+ sdf.format(date));
+									System.out.println("Client Name: "+k+", Water Temperature: "+node.getAllData().get(k).get(0)+", PH Level: "+node.getAllData().get(k).get(1)+", Humidity: "+node.getAllData().get(k).get(2)+"%, Date: "+ sdf.format(date));
 								}
 								// Update CSV File every 10 updates
 								if(data_count == 10)
@@ -123,7 +123,9 @@ public class ElectionDriver {
 		// Filewriter
 		PrintWriter pw = new PrintWriter(new File("Sensors_Data.csv"));
 	    StringBuilder sb = new StringBuilder();
-
+	    // Header (First Line in Excel File)
+	    sb.append("Client,Water Temperature,PH Level,Humiditity Level,Date,Error\r\n");
+	    // Loop and print all the data line by line
 	    for(int i=0; i<Final_Data.size(); i++)
 	    {
 	    	sb.append(Final_Data.get(i).get(0));
@@ -132,7 +134,7 @@ public class ElectionDriver {
 	        sb.append(',');
 	        sb.append(Final_Data.get(i).get(2));
 	        sb.append(',');
-	        sb.append(Final_Data.get(i).get(3));
+	        sb.append(Final_Data.get(i).get(3) + "%");
 	        sb.append(',');
 	        sb.append(Final_Data.get(i).get(4));
 	        

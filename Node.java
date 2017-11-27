@@ -9,6 +9,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.Random;
 import java.text.DecimalFormat;
 import java.text.DateFormat;
@@ -25,9 +26,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	private static final int min = 1;
 	private static final int max = 2;
 
-	private static final int delay = 5000;
-	private static final int leader_delay = 5000;
-	private static final int send_msg_delay = 10000;
+	private static final int delay = 3000;
 	private final int silencePeriod = 30000;
 	private int messagePeriod = 0;
 
@@ -42,12 +41,12 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	private String new_leadername ="";
 
 	//hydro
-	private static final double min_W_lvl = 15.0;
-	private static final double max_W_lvl = 30.0;
-	private static final double min_PH_lvl = 4.0;
-	private static final double max_PH_lvl = 10.0;
-	private static final double min_H_lvl = 35.0;
-	private static final double max_H_lvl = 100.0;
+	private static final double min_W_lvl = 17.4;
+	private static final double max_W_lvl = 26.6;
+	private static final double min_PH_lvl = 5.4;
+	private static final double max_PH_lvl = 6.6;
+	private static final double min_H_lvl = 48.5;
+	private static final double max_H_lvl = 71.5;
 	Random rand = new Random();
 	private double sensor_data;
 	DecimalFormat df = new DecimalFormat("#.#");
@@ -120,19 +119,20 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 			else if (heardFromLeader)
 					heardFromLeader = false;
 			}
-		}, leader_delay, silencePeriod);
+		}, delay, silencePeriod);
 		
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				if((System.currentTimeMillis()/1000) %10 == 0){
+					// If there's leader and client is not leader, send data to leader
 					if (leaderName != null && !name.equals(leaderName)) {		
 						 ArrayList<Double> sensors_data = new  ArrayList<Double>();
 						 //water
 						 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
 						 sensors_data.add(Double.valueOf(df.format(sensor_data)));
 						//ph-lvl
-						 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+						 sensor_data = ThreadLocalRandom.current().nextDouble(min_PH_lvl, max_PH_lvl);
 						 sensors_data.add(Double.valueOf(df.format(sensor_data)));
 						//h-lvl
 						 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
@@ -192,8 +192,8 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 	 * this node's it will declare it the new leader. Otherwise, it will start
 	 * a new election with itself as the candidate.
 	 */
-	@Override
-	public String startElection(String senderName) throws DeadNodeException {
+	
+	public synchronized String startElection(String senderName) throws DeadNodeException {
 		String ret = "";
 		if(getLeaderExist())
 		{
@@ -259,7 +259,7 @@ public class Node extends UnicastRemoteObject implements ElectionNode {
 				 sensor_data = rand.nextDouble()*(max_W_lvl - min_W_lvl + 1) + min_W_lvl;
 				 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
 				//ph-lvl
-				 sensor_data = rand.nextDouble()*(max_PH_lvl - min_PH_lvl + 1) + min_PH_lvl;
+				 sensor_data = ThreadLocalRandom.current().nextDouble(min_PH_lvl, max_PH_lvl);
 				 sensors_data_leader.add(Double.valueOf(df.format(sensor_data)));
 				//h-lvl
 				 sensor_data = rand.nextDouble()*(max_H_lvl - min_H_lvl + 1) + min_H_lvl;
